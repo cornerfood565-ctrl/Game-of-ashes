@@ -1,0 +1,51 @@
+name: Android Gradle Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "project.godot"
+      - "export_presets.cfg"
+      - "scenes/**"
+      - "scripts/**"
+      - ".github/workflows/android-gradle.yml"
+
+jobs:
+  android:
+    name: Export Android APK
+    runs-on: ubuntu-24.04
+    container:
+      image: barichello/godot-ci:4.3
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Prepare Godot export templates
+        run: |
+          mkdir -p ~/.local/share/godot/export_templates
+          if [ -d /root/.local/share/godot/export_templates/4.3.stable ]; then
+            cp -a /root/.local/share/godot/export_templates/4.3.stable ~/.local/share/godot/export_templates/
+          fi
+          mkdir -p ~/.config
+          if [ -d /root/.config/godot ]; then
+            cp -a /root/.config/godot ~/.config/
+          fi
+
+      - name: Validate Godot project
+        run: godot --headless --editor --path . --quit
+
+      - name: Build Android APK with Gradle
+        run: |
+          mkdir -p build
+          godot --headless --path . --verbose --export-debug "Android" build/KingdomOfAshes-debug.apk
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: KingdomOfAshes-Android-debug
+          path: build/KingdomOfAshes-debug.apk
+          if-no-files-found: error
+          retention-days: 14
