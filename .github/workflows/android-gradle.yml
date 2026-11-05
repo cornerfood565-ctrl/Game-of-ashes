@@ -23,16 +23,18 @@ jobs:
         with:
           lfs: true
 
-      - name: Prepare Godot export templates
+      - name: Install matching Godot Android export templates
         run: |
-          mkdir -p ~/.local/share/godot/export_templates
-          if [ -d /root/.local/share/godot/export_templates/4.3.stable ]; then
-            cp -a /root/.local/share/godot/export_templates/4.3.stable ~/.local/share/godot/export_templates/
-          fi
-          mkdir -p ~/.config
-          if [ -d /root/.config/godot ]; then
-            cp -a /root/.config/godot ~/.config/
-          fi
+          set -eu
+          TEMPLATE_VERSION="4.3.stable"
+          mkdir -p "$HOME/.local/share/godot/export_templates"
+          curl -fL "https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_export_templates.tpz" -o /tmp/godot-templates.tpz
+          mkdir -p /tmp/godot-templates
+          unzip -q /tmp/godot-templates.tpz -d /tmp/godot-templates
+          mkdir -p "$HOME/.local/share/godot/export_templates/$TEMPLATE_VERSION"
+          cp -a /tmp/godot-templates/templates/. "$HOME/.local/share/godot/export_templates/$TEMPLATE_VERSION/"
+          test -f "$HOME/.local/share/godot/export_templates/$TEMPLATE_VERSION/android_debug.apk"
+          test -f "$HOME/.local/share/godot/export_templates/$TEMPLATE_VERSION/android_release.apk"
 
       - name: Validate Godot project
         run: godot --headless --editor --path . --quit
