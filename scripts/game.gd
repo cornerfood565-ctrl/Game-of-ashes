@@ -39,6 +39,11 @@ func _build_player() -> void:
 	player = PLAYER_SCRIPT.new()
 	player.position = Vector2(170, 520)
 	add_child(player)
+	var camera := Camera2D.new()
+	camera.enabled = true
+	camera.position_smoothing_enabled = true
+	camera.position_smoothing_speed = 5.0
+	player.add_child(camera)
 
 func _build_hud() -> void:
 	hud = CanvasLayer.new()
